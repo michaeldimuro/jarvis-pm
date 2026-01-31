@@ -5,8 +5,6 @@ let currentFilter = 'all';
 let columnObserver = null;
 let currentColumnIndex = 0;
 let pendingOutcomeCallback = null;
-let dateFilterStart = null;
-let dateFilterEnd = null;
 
 // DOM Elements
 const board = document.getElementById('board');
@@ -20,20 +18,23 @@ const modalTitle = document.getElementById('modalTitle');
 const newTaskBtn = document.getElementById('newTaskBtn');
 const modalClose = document.getElementById('modalClose');
 const cancelBtn = document.getElementById('cancelBtn');
+const saveBtn = document.getElementById('saveBtn');
 const mobilePrev = document.getElementById('mobilePrev');
 const mobileNext = document.getElementById('mobileNext');
 const mobileNewTask = document.getElementById('mobileNewTask');
-const mobileCompleted = document.getElementById('mobileCompleted');
 const mobileColumnName = document.getElementById('mobileColumnName');
 const outcomeModal = document.getElementById('outcomeModal');
 const outcomeText = document.getElementById('outcomeText');
 const outcomeCancel = document.getElementById('outcomeCancel');
 const outcomeSubmit = document.getElementById('outcomeSubmit');
-const completedSheet = document.getElementById('completedSheet');
-const closeCompletedSheet = document.getElementById('closeCompletedSheet');
-const mobileCompletedList = document.getElementById('mobileCompletedList');
-const mobileStartDate = document.getElementById('mobileStartDate');
-const mobileEndDate = document.getElementById('mobileEndDate');
+
+// Editable/Readonly elements
+const editableFields = document.getElementById('editableFields');
+const readonlyFields = document.getElementById('readonlyFields');
+const readonlyTitle = document.getElementById('readonlyTitle');
+const readonlyDescription = document.getElementById('readonlyDescription');
+const outcomeDisplay = document.getElementById('outcomeDisplay');
+const readonlyOutcome = document.getElementById('readonlyOutcome');
 
 // Initialize
 async function init() {
@@ -138,7 +139,7 @@ function renderBoard() {
       taskEl.dataset.id = task.id;
       taskEl.draggable = true;
 
-      // Only show outcome in Review column
+      // Show outcome in Review column
       const showOutcome = column.id === 'review' && task.outcome;
 
       taskEl.innerHTML = `
@@ -168,29 +169,12 @@ function renderBoard() {
   setupMobileColumns();
 }
 
-function getFilteredCompletedTasks(startDate = null, endDate = null) {
+function getFilteredCompletedTasks() {
   return data.tasks
     .filter(t => {
       const matchesColumn = t.column === 'done';
       const matchesFilter = currentFilter === 'all' || t.business === currentFilter;
-      
-      // Date filtering
-      let matchesDate = true;
-      if (startDate || endDate) {
-        const taskDate = new Date(t.updatedAt);
-        if (startDate) {
-          const start = new Date(startDate);
-          start.setHours(0, 0, 0, 0);
-          matchesDate = matchesDate && taskDate >= start;
-        }
-        if (endDate) {
-          const end = new Date(endDate);
-          end.setHours(23, 59, 59, 999);
-          matchesDate = matchesDate && taskDate <= end;
-        }
-      }
-      
-      return matchesColumn && matchesFilter && matchesDate;
+      return matchesColumn && matchesFilter;
     })
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 }
@@ -200,7 +184,7 @@ function renderCompleted() {
   
   completedList.innerHTML = '';
 
-  const completedTasks = getFilteredCompletedTasks(dateFilterStart, dateFilterEnd).slice(0, 8);
+  const completedTasks = getFilteredCompletedTasks().slice(0, 8);
 
   if (completedTasks.length === 0) {
     completedList.innerHTML = '<div class="empty-state">No completed tasks</div>';
@@ -222,39 +206,6 @@ function renderCompleted() {
       </div>
     `;
     completedList.appendChild(item);
-  });
-}
-
-function renderMobileCompleted() {
-  if (!mobileCompletedList) return;
-  
-  mobileCompletedList.innerHTML = '';
-  
-  const startDate = mobileStartDate?.value || null;
-  const endDate = mobileEndDate?.value || null;
-
-  const completedTasks = getFilteredCompletedTasks(startDate, endDate).slice(0, 20);
-
-  if (completedTasks.length === 0) {
-    mobileCompletedList.innerHTML = '<div class="empty-state">No completed tasks in this range</div>';
-    return;
-  }
-
-  completedTasks.forEach(task => {
-    const business = data.businesses.find(b => b.id === task.business);
-    const item = document.createElement('div');
-    item.className = 'completed-item';
-    item.innerHTML = `
-      <div class="completed-item-title">${escapeHtml(task.title)}</div>
-      ${task.outcome ? `<div class="completed-item-outcome">${linkifyOutcome(task.outcome)}</div>` : ''}
-      <div class="completed-item-meta">
-        <span class="completed-item-business" style="background: ${business?.color || '#64748b'}; color: #fff;">
-          ${business?.name || 'Unknown'}
-        </span>
-        <span class="completed-item-time">${formatTime(task.updatedAt)}</span>
-      </div>
-    `;
-    mobileCompletedList.appendChild(item);
   });
 }
 
@@ -308,27 +259,6 @@ function setupEventListeners() {
   mobilePrev.addEventListener('click', () => scrollToColumn(currentColumnIndex - 1));
   mobileNext.addEventListener('click', () => scrollToColumn(currentColumnIndex + 1));
 
-  // Mobile completed sheet
-  if (mobileCompleted) {
-    mobileCompleted.addEventListener('click', openCompletedSheet);
-  }
-  if (closeCompletedSheet) {
-    closeCompletedSheet.addEventListener('click', closeCompletedSheetFn);
-  }
-  if (completedSheet) {
-    completedSheet.addEventListener('click', (e) => {
-      if (e.target === completedSheet) closeCompletedSheetFn();
-    });
-  }
-  
-  // Date filters for mobile
-  if (mobileStartDate) {
-    mobileStartDate.addEventListener('change', renderMobileCompleted);
-  }
-  if (mobileEndDate) {
-    mobileEndDate.addEventListener('change', renderMobileCompleted);
-  }
-
   // Activity toggle
   if (activityToggle) {
     activityToggle.addEventListener('click', () => {
@@ -348,22 +278,8 @@ function setupEventListeners() {
     if (e.key === 'Escape') {
       closeModal();
       closeOutcomeModal();
-      closeCompletedSheetFn();
     }
   });
-}
-
-function openCompletedSheet() {
-  if (completedSheet) {
-    completedSheet.classList.add('active');
-    renderMobileCompleted();
-  }
-}
-
-function closeCompletedSheetFn() {
-  if (completedSheet) {
-    completedSheet.classList.remove('active');
-  }
 }
 
 function setupDragAndDrop() {
@@ -460,28 +376,74 @@ function scrollToColumn(index) {
   updateMobileIndicator(columns);
 }
 
+// Check if task is editable (only in backlog)
+function isTaskEditable(column) {
+  return column === 'backlog';
+}
+
 // Modal functions
 function openModal(task = null) {
   taskModal.classList.add('active');
 
   if (task) {
-    modalTitle.textContent = 'Edit Task';
+    const editable = isTaskEditable(task.column);
+    
+    modalTitle.textContent = editable ? 'Edit Task' : 'View Task';
     document.getElementById('taskId').value = task.id;
     document.getElementById('originalColumn').value = task.column;
-    document.getElementById('taskTitle').value = task.title;
-    document.getElementById('taskDescription').value = task.description || '';
+    
+    // Show/hide editable vs readonly fields
+    editableFields.style.display = editable ? 'block' : 'none';
+    readonlyFields.style.display = editable ? 'none' : 'block';
+    
+    if (editable) {
+      document.getElementById('taskTitle').value = task.title;
+      document.getElementById('taskDescription').value = task.description || '';
+    } else {
+      readonlyTitle.textContent = task.title;
+      readonlyDescription.textContent = task.description || '';
+    }
+    
+    // Show outcome in Review column
+    const showOutcome = task.column === 'review' && task.outcome;
+    outcomeDisplay.style.display = showOutcome ? 'block' : 'none';
+    if (showOutcome) {
+      readonlyOutcome.innerHTML = linkifyOutcome(task.outcome);
+    }
+    
     document.getElementById('taskBusiness').value = task.business;
     document.getElementById('taskPriority').value = task.priority;
     document.getElementById('taskColumn').value = task.column;
+    
+    // Disable business/priority editing if not in backlog
+    document.getElementById('taskBusiness').disabled = !editable;
+    document.getElementById('taskPriority').disabled = !editable;
+    
+    // Update save button text
+    saveBtn.textContent = editable ? 'Save Task' : 'Update Status';
   } else {
     modalTitle.textContent = 'New Task';
     taskForm.reset();
     document.getElementById('taskId').value = '';
     document.getElementById('originalColumn').value = '';
     document.getElementById('taskColumn').value = 'backlog';
+    
+    // Show editable fields for new tasks
+    editableFields.style.display = 'block';
+    readonlyFields.style.display = 'none';
+    outcomeDisplay.style.display = 'none';
+    
+    // Enable all fields
+    document.getElementById('taskBusiness').disabled = false;
+    document.getElementById('taskPriority').disabled = false;
+    
+    saveBtn.textContent = 'Save Task';
   }
 
-  document.getElementById('taskTitle').focus();
+  // Focus title if editable
+  if (editableFields.style.display !== 'none') {
+    document.getElementById('taskTitle').focus();
+  }
 }
 
 function closeModal() {
@@ -522,14 +484,19 @@ async function handleSubmit(e) {
   const taskId = document.getElementById('taskId').value;
   const originalColumn = document.getElementById('originalColumn').value;
   const newColumn = document.getElementById('taskColumn').value;
+  const editable = !taskId || isTaskEditable(originalColumn);
   
   const taskData = {
-    title: document.getElementById('taskTitle').value,
-    description: document.getElementById('taskDescription').value,
-    business: document.getElementById('taskBusiness').value,
-    priority: document.getElementById('taskPriority').value,
     column: newColumn
   };
+  
+  // Only include editable fields if in backlog
+  if (editable) {
+    taskData.title = document.getElementById('taskTitle').value;
+    taskData.description = document.getElementById('taskDescription').value;
+    taskData.business = document.getElementById('taskBusiness').value;
+    taskData.priority = document.getElementById('taskPriority').value;
+  }
 
   // Check if moving to review from in-progress
   const movingToReview = newColumn === 'review' && originalColumn === 'in-progress';
@@ -539,11 +506,7 @@ async function handleSubmit(e) {
     const existingTask = data.tasks.find(t => t.id === taskId);
     openOutcomeModal(existingTask?.outcome || '', async (outcome) => {
       taskData.outcome = outcome;
-      if (taskId) {
-        await updateTask(taskId, taskData);
-      } else {
-        await createTask(taskData);
-      }
+      await updateTask(taskId, taskData);
       await refresh();
     });
   } else {

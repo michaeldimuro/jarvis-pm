@@ -651,13 +651,13 @@ body {
   left: 16px;
   right: 16px;
   bottom: 16px;
-  display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 8px;
   background: rgba(15, 22, 36, 0.85);
   border: 1px solid rgba(148, 163, 184, 0.2);
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 18px;
   backdrop-filter: blur(16px);
   box-shadow: var(--shadow-soft);
@@ -668,13 +668,18 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.25);
   background: rgba(30, 41, 59, 0.6);
   color: var(--text-primary);
-  font-size: 1rem;
-  padding: 10px 14px;
-  border-radius: 14px;
-  min-height: 44px;
-  min-width: 44px;
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  border-radius: 12px;
+  height: 40px;
+  min-width: 40px;
   cursor: pointer;
   transition: transform 0.2s ease, border 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  flex-shrink: 0;
 }
 
 .nav-btn:hover {
@@ -692,18 +697,24 @@ body {
 
 .nav-center {
   text-align: left;
+  flex: 1;
+  min-width: 0;
+  padding: 0 4px;
 }
 
 .nav-label {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.15em;
 }
 
 .nav-title {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* History Page */
@@ -931,4 +942,43 @@ body {
   flex: 1;
   padding: 6px 8px;
   font-size: 0.75rem;
+}
+
+/* Read-only text display */
+.readonly-text {
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  min-height: 40px;
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+
+.readonly-text:empty::before {
+  content: "—";
+  color: var(--text-muted);
+}
+
+.readonly-outcome {
+  padding: 12px;
+  background: rgba(34, 197, 94, 0.1);
+  border-left: 3px solid var(--success);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.readonly-outcome a {
+  color: #a5d6ff;
+}
+
+.readonly-outcome:empty::before {
+  content: "No outcome recorded";
+  color: var(--text-muted);
+  font-style: italic;
 }
