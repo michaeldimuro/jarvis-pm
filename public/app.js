@@ -139,7 +139,7 @@ function renderBoard() {
       taskEl.dataset.id = task.id;
       taskEl.draggable = true;
 
-      // Show outcome in Review column
+      // Show outcome in Review column if it exists
       const showOutcome = column.id === 'review' && task.outcome;
 
       taskEl.innerHTML = `
@@ -384,6 +384,9 @@ function isTaskEditable(column) {
 // Modal functions
 function openModal(task = null) {
   taskModal.classList.add('active');
+  
+  const taskTitleInput = document.getElementById('taskTitle');
+  const taskDescInput = document.getElementById('taskDescription');
 
   if (task) {
     const editable = isTaskEditable(task.column);
@@ -397,18 +400,28 @@ function openModal(task = null) {
     readonlyFields.style.display = editable ? 'none' : 'block';
     
     if (editable) {
-      document.getElementById('taskTitle').value = task.title;
-      document.getElementById('taskDescription').value = task.description || '';
+      taskTitleInput.value = task.title;
+      taskTitleInput.required = true;
+      taskDescInput.value = task.description || '';
     } else {
+      // Set values in hidden fields too (for form data) but remove required
+      taskTitleInput.value = task.title;
+      taskTitleInput.required = false;
+      taskDescInput.value = task.description || '';
+      // Display readonly text
       readonlyTitle.textContent = task.title;
       readonlyDescription.textContent = task.description || '';
     }
     
-    // Show outcome in Review column
-    const showOutcome = task.column === 'review' && task.outcome;
-    outcomeDisplay.style.display = showOutcome ? 'block' : 'none';
-    if (showOutcome) {
-      readonlyOutcome.innerHTML = linkifyOutcome(task.outcome);
+    // Show outcome section for tasks in Review column (whether outcome exists or not)
+    const isReview = task.column === 'review';
+    outcomeDisplay.style.display = isReview ? 'block' : 'none';
+    if (isReview) {
+      if (task.outcome) {
+        readonlyOutcome.innerHTML = linkifyOutcome(task.outcome);
+      } else {
+        readonlyOutcome.innerHTML = '<span style="color: var(--text-muted); font-style: italic;">No outcome recorded yet</span>';
+      }
     }
     
     document.getElementById('taskBusiness').value = task.business;
@@ -433,7 +446,8 @@ function openModal(task = null) {
     readonlyFields.style.display = 'none';
     outcomeDisplay.style.display = 'none';
     
-    // Enable all fields
+    // Enable required and all fields
+    taskTitleInput.required = true;
     document.getElementById('taskBusiness').disabled = false;
     document.getElementById('taskPriority').disabled = false;
     
@@ -442,13 +456,15 @@ function openModal(task = null) {
 
   // Focus title if editable
   if (editableFields.style.display !== 'none') {
-    document.getElementById('taskTitle').focus();
+    taskTitleInput.focus();
   }
 }
 
 function closeModal() {
   taskModal.classList.remove('active');
   taskForm.reset();
+  // Re-enable required
+  document.getElementById('taskTitle').required = true;
 }
 
 // Outcome modal
@@ -490,7 +506,7 @@ async function handleSubmit(e) {
     column: newColumn
   };
   
-  // Only include editable fields if in backlog
+  // Only include editable fields if in backlog (new task or editing backlog task)
   if (editable) {
     taskData.title = document.getElementById('taskTitle').value;
     taskData.description = document.getElementById('taskDescription').value;
