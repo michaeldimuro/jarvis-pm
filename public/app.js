@@ -1,7 +1,8 @@
 // State
-let data = { businesses: [], columns: [], tasks: [] };
+let data = { businesses: [], columns: [], tasks: [], assignees: [] };
 let activities = [];
 let currentFilter = 'all';
+let assigneeFilter = 'all';
 let columnObserver = null;
 let currentColumnIndex = 0;
 let pendingOutcomeCallback = null;
@@ -12,6 +13,7 @@ const completedList = document.getElementById('completedList');
 const activityList = document.getElementById('activityList');
 const activityToggle = document.getElementById('activityToggle');
 const businessFilter = document.getElementById('businessFilter');
+const assigneeFilterEl = document.getElementById('assigneeFilter');
 const taskModal = document.getElementById('taskModal');
 const taskForm = document.getElementById('taskForm');
 const modalTitle = document.getElementById('modalTitle');
@@ -83,17 +85,37 @@ async function deleteTask(id) {
 
 // Rendering
 function populateFilters() {
+  // Business filter
   businessFilter.innerHTML = '<option value="all">All Businesses</option>';
   data.businesses.forEach(b => {
     businessFilter.innerHTML += `<option value="${b.id}">${b.name}</option>`;
   });
 
+  // Assignee filter
+  if (assigneeFilterEl) {
+    assigneeFilterEl.innerHTML = '<option value="all">All Assignees</option>';
+    (data.assignees || []).forEach(a => {
+      assigneeFilterEl.innerHTML += `<option value="${a.id}">${a.name}</option>`;
+    });
+  }
+
+  // Task form - business
   const taskBusiness = document.getElementById('taskBusiness');
   taskBusiness.innerHTML = '';
   data.businesses.forEach(b => {
     taskBusiness.innerHTML += `<option value="${b.id}">${b.name}</option>`;
   });
 
+  // Task form - assignee
+  const taskAssignee = document.getElementById('taskAssignee');
+  if (taskAssignee) {
+    taskAssignee.innerHTML = '';
+    (data.assignees || []).forEach(a => {
+      taskAssignee.innerHTML += `<option value="${a.id}">${a.name}</option>`;
+    });
+  }
+
+  // Task form - column
   const taskColumn = document.getElementById('taskColumn');
   taskColumn.innerHTML = '';
   data.columns.forEach(c => {
@@ -116,8 +138,9 @@ function renderBoard() {
 
     const filteredTasks = data.tasks.filter(t => {
       const matchesColumn = t.column === column.id;
-      const matchesFilter = currentFilter === 'all' || t.business === currentFilter;
-      return matchesColumn && matchesFilter;
+      const matchesBusiness = currentFilter === 'all' || t.business === currentFilter;
+      const matchesAssignee = assigneeFilter === 'all' || t.assignee === assigneeFilter;
+      return matchesColumn && matchesBusiness && matchesAssignee;
     });
 
     columnEl.innerHTML = `
@@ -134,6 +157,7 @@ function renderBoard() {
 
     filteredTasks.forEach(task => {
       const business = data.businesses.find(b => b.id === task.business);
+      const assignee = (data.assignees || []).find(a => a.id === task.assignee);
       const taskEl = document.createElement('div');
       taskEl.className = 'task-card';
       taskEl.dataset.id = task.id;
@@ -155,6 +179,9 @@ function renderBoard() {
           <span class="task-business" style="background: ${business?.color || '#64748b'}; color: #fff;">
             ${business?.name || 'Unknown'}
           </span>
+          <span class="task-assignee" style="background: ${assignee?.color || '#64748b'}; color: #fff;">
+            ${assignee?.name || 'Unassigned'}
+          </span>
           <span class="task-priority ${task.priority}">${task.priority}</span>
         </div>
       `;
@@ -173,8 +200,9 @@ function getFilteredCompletedTasks() {
   return data.tasks
     .filter(t => {
       const matchesColumn = t.column === 'done';
-      const matchesFilter = currentFilter === 'all' || t.business === currentFilter;
-      return matchesColumn && matchesFilter;
+      const matchesBusiness = currentFilter === 'all' || t.business === currentFilter;
+      const matchesAssignee = assigneeFilter === 'all' || t.assignee === assigneeFilter;
+      return matchesColumn && matchesBusiness && matchesAssignee;
     })
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 }
@@ -236,6 +264,14 @@ function setupEventListeners() {
     renderBoard();
     renderCompleted();
   });
+
+  if (assigneeFilterEl) {
+    assigneeFilterEl.addEventListener('change', (e) => {
+      assigneeFilter = e.target.value;
+      renderBoard();
+      renderCompleted();
+    });
+  }
 
   newTaskBtn.addEventListener('click', () => openModal());
   mobileNewTask.addEventListener('click', () => openModal());
@@ -321,7 +357,8 @@ function setupDragAndDrop() {
       // Check if moving to review from in-progress
       if (newColumn === 'review' && task.column === 'in-progress') {
         openOutcomeModal(task.outcome || '', async (outcome) => {
-          await updateTask(taskId, { column: newColumn, outcome });
+          // When moving to review, assign to Michael
+          await updateTask(taskId, { column: newColumn, outcome, assignee: 'michael' });
           await refresh();
         });
       } else {
@@ -363,7 +400,12 @@ function updateMobileIndicator(columns) {
   if (!column) return;
   const columnId = column.dataset.column;
   const columnData = data.columns.find(c => c.id === columnId);
-  const count = data.tasks.filter(t => t.column === columnId && (currentFilter === 'all' || t.business === currentFilter)).length;
+  const count = data.tasks.filter(t => {
+    const matchesColumn = t.column === columnId;
+    const matchesBusiness = currentFilter === 'all' || t.business === currentFilter;
+    const matchesAssignee = assigneeFilter === 'all' || t.assignee === assigneeFilter;
+    return matchesColumn && matchesBusiness && matchesAssignee;
+  }).length;
   mobileColumnName.textContent = `${columnData?.name || 'Column'} (${count})`;
 }
 
@@ -387,6 +429,7 @@ function openModal(task = null) {
   
   const taskTitleInput = document.getElementById('taskTitle');
   const taskDescInput = document.getElementById('taskDescription');
+  const taskAssignee = document.getElementById('taskAssignee');
 
   if (task) {
     const editable = isTaskEditable(task.column);
@@ -427,8 +470,9 @@ function openModal(task = null) {
     document.getElementById('taskBusiness').value = task.business;
     document.getElementById('taskPriority').value = task.priority;
     document.getElementById('taskColumn').value = task.column;
+    if (taskAssignee) taskAssignee.value = task.assignee || 'jarvis';
     
-    // Disable business/priority editing if not in backlog
+    // Disable business/priority editing if not in backlog, but assignee can always be changed
     document.getElementById('taskBusiness').disabled = !editable;
     document.getElementById('taskPriority').disabled = !editable;
     
@@ -440,6 +484,7 @@ function openModal(task = null) {
     document.getElementById('taskId').value = '';
     document.getElementById('originalColumn').value = '';
     document.getElementById('taskColumn').value = 'backlog';
+    if (taskAssignee) taskAssignee.value = 'jarvis';
     
     // Show editable fields for new tasks
     editableFields.style.display = 'block';
@@ -501,9 +546,11 @@ async function handleSubmit(e) {
   const originalColumn = document.getElementById('originalColumn').value;
   const newColumn = document.getElementById('taskColumn').value;
   const editable = !taskId || isTaskEditable(originalColumn);
+  const taskAssignee = document.getElementById('taskAssignee');
   
   const taskData = {
-    column: newColumn
+    column: newColumn,
+    assignee: taskAssignee ? taskAssignee.value : 'jarvis'
   };
   
   // Only include editable fields if in backlog (new task or editing backlog task)
@@ -522,6 +569,7 @@ async function handleSubmit(e) {
     const existingTask = data.tasks.find(t => t.id === taskId);
     openOutcomeModal(existingTask?.outcome || '', async (outcome) => {
       taskData.outcome = outcome;
+      taskData.assignee = 'michael'; // Auto-assign to Michael when moving to review
       await updateTask(taskId, taskData);
       await refresh();
     });

@@ -43,6 +43,10 @@ function initDataFiles() {
         { id: 'review', name: 'Review', order: 3 },
         { id: 'done', name: 'Done', order: 4 }
       ],
+      assignees: [
+        { id: 'michael', name: 'Michael', color: '#8B5CF6' },
+        { id: 'jarvis', name: 'Jarvis', color: '#06B6D4' }
+      ],
       tasks: []
     };
     fs.writeFileSync(DATA_FILE, JSON.stringify(initialData, null, 2));
@@ -106,7 +110,7 @@ app.get('/api/activity', (req, res) => {
 // Create task
 app.post('/api/tasks', (req, res) => {
   const data = readData();
-  const { title, description, business, priority, column, outcome } = req.body;
+  const { title, description, business, priority, column, outcome, assignee } = req.body;
   
   const newTask = {
     id: uuidv4(),
@@ -116,6 +120,7 @@ app.post('/api/tasks', (req, res) => {
     priority: priority || 'medium',
     column: column || 'backlog',
     outcome: outcome || '',
+    assignee: assignee || 'jarvis',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
