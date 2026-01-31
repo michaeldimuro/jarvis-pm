@@ -1,0 +1,18 @@
+{
+  "name": "jarvis-pm",
+  "version": "1.0.0",
+  "description": "Internal project management for Michael's ventures",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-basic-auth": "^1.2.1",
+    "uuid": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

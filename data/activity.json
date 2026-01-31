@@ -1,0 +1,148 @@
+{
+  "activities": [
+    {
+      "id": "f11be397-4787-4eb3-893e-10b57e464c38",
+      "action": "updated",
+      "details": "\"Plan Google Play submission\" was updated",
+      "timestamp": "2026-01-31T17:17:26.697Z"
+    },
+    {
+      "id": "4f33c10a-3f6a-46ea-9d8d-0a10db284615",
+      "action": "moved",
+      "details": "\"Set up ANGI lead notification monitoring\" moved to Done",
+      "timestamp": "2026-01-31T16:44:06.042Z"
+    },
+    {
+      "id": "2a43ac3c-4959-46a0-ad19-31242edbd1f0",
+      "action": "created",
+      "details": "Task \"Implement RevenueCat subscription system\" added to Inspectable",
+      "timestamp": "2026-01-31T16:44:02.087Z"
+    },
+    {
+      "id": "55df27e7-104b-47d0-8b7f-a7ad568d8bd3",
+      "action": "moved",
+      "details": "\"Consolidate Patient Portal state management\" moved to To Do",
+      "timestamp": "2026-01-31T05:11:06.441Z"
+    },
+    {
+      "id": "ddb49f41-0536-4911-9c26-5779b86e76b8",
+      "action": "moved",
+      "details": "\"Prepare Google Play Store listing\" moved to In Progress",
+      "timestamp": "2026-01-31T05:00:49.632Z"
+    },
+    {
+      "id": "ce933328-8eaf-45ab-b245-fd929fb74ccc",
+      "action": "moved",
+      "details": "\"Create lead response templates\" moved to Done",
+      "timestamp": "2026-01-31T05:00:12.489Z"
+    },
+    {
+      "id": "73ceeb35-215f-40b5-afe6-fc7647a0e398",
+      "action": "created",
+      "details": "Task \"Add structured logging to API\" added to Capture Health",
+      "timestamp": "2026-01-31T04:59:16.072Z"
+    },
+    {
+      "id": "180c659d-668d-4594-92f9-c703a955217e",
+      "action": "created",
+      "details": "Task \"Add E2E tests for critical flows\" added to Capture Health",
+      "timestamp": "2026-01-31T04:59:16.059Z"
+    },
+    {
+      "id": "106a2a3b-a667-418a-803d-ab47a2276077",
+      "action": "created",
+      "details": "Task \"Extract shared component library\" added to Capture Health",
+      "timestamp": "2026-01-31T04:59:16.043Z"
+    },
+    {
+      "id": "e88db7eb-1337-4fb0-9121-0937603d40fa",
+      "action": "created",
+      "details": "Task \"Consolidate Patient Portal state management\" added to Capture Health",
+      "timestamp": "2026-01-31T04:59:16.024Z"
+    },
+    {
+      "id": "b9d9aff6-16e4-43e8-b611-96e5882cd9e2",
+      "action": "created",
+      "details": "Task \"Optimize PDF generation\" added to Inspectable",
+      "timestamp": "2026-01-31T04:59:03.180Z"
+    },
+    {
+      "id": "1e1d7a14-7c06-4e7a-ada9-e5e534868943",
+      "action": "created",
+      "details": "Task \"Add test coverage to Inspectable\" added to Inspectable",
+      "timestamp": "2026-01-31T04:59:03.166Z"
+    },
+    {
+      "id": "a085cf9a-8ab7-4398-ba41-bca4c6743dde",
+      "action": "created",
+      "details": "Task \"Add TypeScript to Inspectable backend\" added to Inspectable",
+      "timestamp": "2026-01-31T04:59:03.151Z"
+    },
+    {
+      "id": "e4d5b01b-f67c-4c91-af39-cbeb1d56e00e",
+      "action": "created",
+      "details": "Task \"Prepare Google Play Store listing\" added to Inspectable",
+      "timestamp": "2026-01-31T04:59:03.132Z"
+    },
+    {
+      "id": "b0735d31-3c54-414e-a820-c921e7281480",
+      "action": "created",
+      "details": "Task \"Add contact form backend\" added to Synergy Property Development",
+      "timestamp": "2026-01-31T04:58:53.728Z"
+    },
+    {
+      "id": "f70df0dd-a6a3-4509-a2a5-88585dd40b3f",
+      "action": "created",
+      "details": "Task \"Add Google Analytics to Synergy site\" added to Synergy Property Development",
+      "timestamp": "2026-01-31T04:58:53.715Z"
+    },
+    {
+      "id": "4593725a-502f-4c12-b549-20aac1000b3e",
+      "action": "created",
+      "details": "Task \"Create lead response templates\" added to Synergy Property Development",
+      "timestamp": "2026-01-31T04:58:53.700Z"
+    },
+    {
+      "id": "1b5ad5f0-9213-4fa9-8b3c-65046890a532",
+      "action": "created",
+      "details": "Task \"Set up ANGI lead notification monitoring\" added to Synergy Property Development",
+      "timestamp": "2026-01-31T04:58:53.682Z"
+    },
+    {
+      "id": "bc1a67fd-841b-4f23-b0dd-da56cd869665",
+      "action": "created",
+      "details": "Task \"Set up project management automation\" added to Korn Ferry",
+      "timestamp": "2026-01-31T04:17:26.380Z"
+    },
+    {
+      "id": "fe73de8b-d364-4da9-8c4a-91515a127f9d",
+      "action": "created",
+      "details": "Task \"Capture Health ops check\" added to Capture Health",
+      "timestamp": "2026-01-31T04:17:19.418Z"
+    },
+    {
+      "id": "b81f19bf-d409-4907-878c-211ea524b2e8",
+      "action": "created",
+      "details": "Task \"Plan Google Play submission\" added to Inspectable",
+      "timestamp": "2026-01-31T04:17:19.407Z"
+    },
+    {
+      "id": "bb5c4073-6660-4707-9360-471caae6601a",
+      "action": "created",
+      "details": "Task \"App Store review status\" added to Inspectable",
+      "timestamp": "2026-01-31T04:17:19.394Z"
+    },
+    {
+      "id": "fa79fe84-9609-445b-bb99-b959727959f1",
+      "action": "created",
+      "details": "Task \"Monitor ANGI lead inbox\" added to Synergy Property Development",
+      "timestamp": "2026-01-31T04:17:19.380Z"
+    },
+    {
+      "id": "e7f2e040-e251-445b-a35c-9083907b7ae8",
+      "action": "created",
+      "details": "Task \"Respond to new ANGI leads immediately\" added to Synergy Property Development",
+      "timestamp": "2026-01-31T04:17:19.363Z"
+    }
+  ]
+}

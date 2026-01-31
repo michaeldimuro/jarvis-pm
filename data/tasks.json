@@ -1,0 +1,243 @@
+{
+  "businesses": [
+    {
+      "id": "korn-ferry",
+      "name": "Korn Ferry",
+      "color": "#4A90D9"
+    },
+    {
+      "id": "capture-health",
+      "name": "Capture Health",
+      "color": "#50C878"
+    },
+    {
+      "id": "inspectable",
+      "name": "Inspectable",
+      "color": "#FF6B6B"
+    },
+    {
+      "id": "synergy",
+      "name": "Synergy Property Development",
+      "color": "#FFB347"
+    }
+  ],
+  "columns": [
+    {
+      "id": "backlog",
+      "name": "Backlog",
+      "order": 0
+    },
+    {
+      "id": "todo",
+      "name": "To Do",
+      "order": 1
+    },
+    {
+      "id": "in-progress",
+      "name": "In Progress",
+      "order": 2
+    },
+    {
+      "id": "review",
+      "name": "Review",
+      "order": 3
+    },
+    {
+      "id": "done",
+      "name": "Done",
+      "order": 4
+    }
+  ],
+  "tasks": [
+    {
+      "id": "ec36adc5-15a8-48d0-984f-3fcdcb0d5ca8",
+      "title": "Respond to new ANGI leads immediately",
+      "description": "Speed is critical - contact customers ASAP, gather requirements, schedule on-site visit",
+      "business": "synergy",
+      "priority": "urgent",
+      "column": "todo",
+      "createdAt": "2026-01-31T04:17:19.362Z",
+      "updatedAt": "2026-01-31T04:17:19.362Z"
+    },
+    {
+      "id": "6f40b406-e2b0-49c4-bb8b-59d4fff5743b",
+      "title": "Monitor ANGI lead inbox",
+      "description": "Check jarvisdimuro@gmail.com for new lead notifications",
+      "business": "synergy",
+      "priority": "high",
+      "column": "in-progress",
+      "createdAt": "2026-01-31T04:17:19.380Z",
+      "updatedAt": "2026-01-31T04:17:19.380Z"
+    },
+    {
+      "id": "6c5c70a0-eb91-4817-a5b7-83902d48892f",
+      "title": "App Store review status",
+      "description": "Inspectable app pending Apple review - monitor for approval",
+      "business": "inspectable",
+      "priority": "high",
+      "column": "review",
+      "createdAt": "2026-01-31T04:17:19.394Z",
+      "updatedAt": "2026-01-31T04:17:19.394Z"
+    },
+    {
+      "id": "cf519d21-f026-4acc-9b74-1194bce90ed7",
+      "title": "Plan Google Play submission",
+      "description": "Prepare for Android launch once iOS is approved",
+      "business": "inspectable",
+      "priority": "medium",
+      "column": "backlog",
+      "createdAt": "2026-01-31T04:17:19.407Z",
+      "updatedAt": "2026-01-31T17:17:26.696Z"
+    },
+    {
+      "id": "f469f3c1-e484-4787-9a72-deb9e2bed8a1",
+      "title": "Capture Health ops check",
+      "description": "Verify telemedicine platform running smoothly",
+      "business": "capture-health",
+      "priority": "medium",
+      "column": "backlog",
+      "createdAt": "2026-01-31T04:17:19.418Z",
+      "updatedAt": "2026-01-31T04:17:19.418Z"
+    },
+    {
+      "id": "63f54c70-b5e3-4aa6-9279-182a2a77814a",
+      "title": "Set up project management automation",
+      "description": "Integrate Jarvis PM with other workflows",
+      "business": "korn-ferry",
+      "priority": "low",
+      "column": "backlog",
+      "createdAt": "2026-01-31T04:17:26.379Z",
+      "updatedAt": "2026-01-31T04:17:26.379Z"
+    },
+    {
+      "id": "ec11a783-8697-4c28-8c94-01ae952bd1b6",
+      "title": "Set up ANGI lead notification monitoring",
+      "description": "Build automated monitoring of jarvisdimuro@gmail.com for ANGI lead notifications. Alert immediately when new leads come in so we can respond fast.",
+      "business": "synergy",
+      "priority": "urgent",
+      "column": "done",
+      "createdAt": "2026-01-31T04:58:53.682Z",
+      "updatedAt": "2026-01-31T16:44:06.041Z"
+    },
+    {
+      "id": "324b60b0-baf4-4193-b2a1-af0f743ad3a8",
+      "title": "Create lead response templates",
+      "description": "Draft professional response templates for different lead types (roofing, kitchen, bathroom, etc.) to speed up initial outreach.",
+      "business": "synergy",
+      "priority": "high",
+      "column": "done",
+      "createdAt": "2026-01-31T04:58:53.700Z",
+      "updatedAt": "2026-01-31T05:00:12.488Z"
+    },
+    {
+      "id": "2b219989-6d29-4a70-a998-8393f15826b4",
+      "title": "Add Google Analytics to Synergy site",
+      "description": "Install GA4 tracking to understand visitor behavior, traffic sources, and conversion rates.",
+      "business": "synergy",
+      "priority": "medium",
+      "column": "backlog",
+      "createdAt": "2026-01-31T04:58:53.715Z",
+      "updatedAt": "2026-01-31T04:58:53.715Z"
+    },
+    {
+      "id": "4e6ee047-9906-49da-92e9-5619e03f1eda",
+      "title": "Add contact form backend",
+      "description": "The Synergy site needs a working contact form. Set up serverless form handling (Netlify Forms, Formspree, or custom).",
+      "business": "synergy",
+      "priority": "medium",
+      "column": "backlog",
+      "createdAt": "2026-01-31T04:58:53.727Z",
+      "updatedAt": "2026-01-31T04:58:53.727Z"
+    },
+    {
+      "id": "20521e42-b943-401d-be30-9b55901be41d",
+      "title": "Prepare Google Play Store listing",
+      "description": "Create app store listing assets for Android: screenshots, feature graphic, description, keywords. Be ready to submit once iOS is approved.",
+      "business": "inspectable",
+      "priority": "high",
+      "column": "in-progress",
+      "createdAt": "2026-01-31T04:59:03.131Z",
+      "updatedAt": "2026-01-31T05:00:49.632Z"
+    },
+    {
+      "id": "fae0e535-5f54-4640-8231-022f4d178ceb",
+      "title": "Add TypeScript to Inspectable backend",
+      "description": "Migrate inspectable-backend from JavaScript to TypeScript for better type safety and maintainability.",
+      "business": "inspectable",
+      "priority": "low",
+      "column": "backlog",
+      "createdAt": "2026-01-31T04:59:03.150Z",
+      "updatedAt": "2026-01-31T04:59:03.150Z"
+    },
+    {
+      "id": "8423abcb-4c54-4e47-a91e-65834e9b39de",
+      "title": "Add test coverage to Inspectable",
+      "description": "Set up Jest/Vitest and add unit tests for critical paths (auth, AI analysis, PDF generation).",
+      "business": "inspectable",
+      "priority": "low",
+      "column": "backlog",
+      "createdAt": "2026-01-31T04:59:03.166Z",
+      "updatedAt": "2026-01-31T04:59:03.166Z"
+    },
+    {
+      "id": "5d4d7d96-0997-4c75-b2f3-72ac64e19126",
+      "title": "Optimize PDF generation",
+      "description": "Puppeteer is heavy - explore lighter alternatives like react-pdf or pdfkit for faster report generation.",
+      "business": "inspectable",
+      "priority": "medium",
+      "column": "backlog",
+      "createdAt": "2026-01-31T04:59:03.180Z",
+      "updatedAt": "2026-01-31T04:59:03.180Z"
+    },
+    {
+      "id": "7a29870c-cf05-44be-9610-5cb78d9d4623",
+      "title": "Consolidate Patient Portal state management",
+      "description": "Patient Portal uses both Redux and Zustand. Migrate everything to Zustand for consistency with other portals.",
+      "business": "capture-health",
+      "priority": "medium",
+      "column": "todo",
+      "createdAt": "2026-01-31T04:59:16.023Z",
+      "updatedAt": "2026-01-31T05:11:06.440Z"
+    },
+    {
+      "id": "f1064d1e-ad4b-4a90-b114-39041dce78d2",
+      "title": "Extract shared component library",
+      "description": "Capture Health portals share many UI components. Extract into a shared package to reduce duplication and ensure consistency.",
+      "business": "capture-health",
+      "priority": "low",
+      "column": "backlog",
+      "createdAt": "2026-01-31T04:59:16.043Z",
+      "updatedAt": "2026-01-31T04:59:16.043Z"
+    },
+    {
+      "id": "2a48c626-b7bf-4924-9abe-93d11d6b382b",
+      "title": "Add E2E tests for critical flows",
+      "description": "Set up Playwright or Cypress and add E2E tests for: patient intake, payment processing, order management.",
+      "business": "capture-health",
+      "priority": "medium",
+      "column": "backlog",
+      "createdAt": "2026-01-31T04:59:16.058Z",
+      "updatedAt": "2026-01-31T04:59:16.058Z"
+    },
+    {
+      "id": "c1fdad79-dd75-43fc-aca4-3943418da5e2",
+      "title": "Add structured logging to API",
+      "description": "Implement Winston or Pino for structured logging in capture-api. Better debugging and monitoring in production.",
+      "business": "capture-health",
+      "priority": "low",
+      "column": "backlog",
+      "createdAt": "2026-01-31T04:59:16.072Z",
+      "updatedAt": "2026-01-31T04:59:16.072Z"
+    },
+    {
+      "id": "9491d686-cfc0-4c4f-9045-62fef9d38f0f",
+      "title": "Implement RevenueCat subscription system",
+      "description": "Full-stack subscription implementation: Frontend (RevenueCat SDK, paywall UI, gating) + Backend (webhooks, middleware, schema). PRs: frontend#1, backend#1",
+      "business": "inspectable",
+      "priority": "urgent",
+      "column": "review",
+      "createdAt": "2026-01-31T16:44:02.086Z",
+      "updatedAt": "2026-01-31T16:44:02.086Z"
+    }
+  ]
+}
