@@ -25,6 +25,8 @@
       <div class="history-header">
         <h2>Work History</h2>
         <div class="history-filters">
+          <input type="date" id="startDate" class="date-input" title="From date">
+          <input type="date" id="endDate" class="date-input" title="To date">
           <select id="businessFilter" class="filter-select">
             <option value="all">All Businesses</option>
           </select>
@@ -44,11 +46,15 @@
   <script>
     let data = { businesses: [], columns: [], tasks: [] };
     let currentFilter = 'all';
+    let startDate = null;
+    let endDate = null;
     let displayCount = 20;
     const pageSize = 20;
 
     const historyList = document.getElementById('historyList');
     const businessFilter = document.getElementById('businessFilter');
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
     const loadMore = document.getElementById('loadMore');
     const loadMoreBtn = document.getElementById('loadMoreBtn');
 
@@ -71,7 +77,24 @@
         .filter(t => {
           const matchesColumn = t.column === 'done';
           const matchesFilter = currentFilter === 'all' || t.business === currentFilter;
-          return matchesColumn && matchesFilter;
+          
+          // Date filtering
+          let matchesDate = true;
+          if (startDate || endDate) {
+            const taskDate = new Date(t.updatedAt);
+            if (startDate) {
+              const start = new Date(startDate);
+              start.setHours(0, 0, 0, 0);
+              matchesDate = matchesDate && taskDate >= start;
+            }
+            if (endDate) {
+              const end = new Date(endDate);
+              end.setHours(23, 59, 59, 999);
+              matchesDate = matchesDate && taskDate <= end;
+            }
+          }
+          
+          return matchesColumn && matchesFilter && matchesDate;
         })
         .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
     }
@@ -83,7 +106,7 @@
       historyList.innerHTML = '';
 
       if (tasksToShow.length === 0) {
-        historyList.innerHTML = '<div class="empty-state">No completed tasks yet</div>';
+        historyList.innerHTML = '<div class="empty-state">No completed tasks found</div>';
         loadMore.style.display = 'none';
         return;
       }
@@ -142,6 +165,18 @@
 
     businessFilter.addEventListener('change', (e) => {
       currentFilter = e.target.value;
+      displayCount = pageSize;
+      renderHistory();
+    });
+
+    startDateInput.addEventListener('change', (e) => {
+      startDate = e.target.value || null;
+      displayCount = pageSize;
+      renderHistory();
+    });
+
+    endDateInput.addEventListener('change', (e) => {
+      endDate = e.target.value || null;
       displayCount = pageSize;
       renderHistory();
     });

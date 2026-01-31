@@ -5,6 +5,8 @@ let currentFilter = 'all';
 let columnObserver = null;
 let currentColumnIndex = 0;
 let pendingOutcomeCallback = null;
+let dateFilterStart = null;
+let dateFilterEnd = null;
 
 // DOM Elements
 const board = document.getElementById('board');
@@ -21,11 +23,17 @@ const cancelBtn = document.getElementById('cancelBtn');
 const mobilePrev = document.getElementById('mobilePrev');
 const mobileNext = document.getElementById('mobileNext');
 const mobileNewTask = document.getElementById('mobileNewTask');
+const mobileCompleted = document.getElementById('mobileCompleted');
 const mobileColumnName = document.getElementById('mobileColumnName');
 const outcomeModal = document.getElementById('outcomeModal');
 const outcomeText = document.getElementById('outcomeText');
 const outcomeCancel = document.getElementById('outcomeCancel');
 const outcomeSubmit = document.getElementById('outcomeSubmit');
+const completedSheet = document.getElementById('completedSheet');
+const closeCompletedSheet = document.getElementById('closeCompletedSheet');
+const mobileCompletedList = document.getElementById('mobileCompletedList');
+const mobileStartDate = document.getElementById('mobileStartDate');
+const mobileEndDate = document.getElementById('mobileEndDate');
 
 // Initialize
 async function init() {
@@ -160,23 +168,42 @@ function renderBoard() {
   setupMobileColumns();
 }
 
+function getFilteredCompletedTasks(startDate = null, endDate = null) {
+  return data.tasks
+    .filter(t => {
+      const matchesColumn = t.column === 'done';
+      const matchesFilter = currentFilter === 'all' || t.business === currentFilter;
+      
+      // Date filtering
+      let matchesDate = true;
+      if (startDate || endDate) {
+        const taskDate = new Date(t.updatedAt);
+        if (startDate) {
+          const start = new Date(startDate);
+          start.setHours(0, 0, 0, 0);
+          matchesDate = matchesDate && taskDate >= start;
+        }
+        if (endDate) {
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+          matchesDate = matchesDate && taskDate <= end;
+        }
+      }
+      
+      return matchesColumn && matchesFilter && matchesDate;
+    })
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+}
+
 function renderCompleted() {
   if (!completedList) return;
   
   completedList.innerHTML = '';
 
-  // Get completed tasks, sorted by most recent
-  const completedTasks = data.tasks
-    .filter(t => {
-      const matchesColumn = t.column === 'done';
-      const matchesFilter = currentFilter === 'all' || t.business === currentFilter;
-      return matchesColumn && matchesFilter;
-    })
-    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-    .slice(0, 8); // Show last 8
+  const completedTasks = getFilteredCompletedTasks(dateFilterStart, dateFilterEnd).slice(0, 8);
 
   if (completedTasks.length === 0) {
-    completedList.innerHTML = '<div class="empty-state">No completed tasks yet</div>';
+    completedList.innerHTML = '<div class="empty-state">No completed tasks</div>';
     return;
   }
 
@@ -195,6 +222,39 @@ function renderCompleted() {
       </div>
     `;
     completedList.appendChild(item);
+  });
+}
+
+function renderMobileCompleted() {
+  if (!mobileCompletedList) return;
+  
+  mobileCompletedList.innerHTML = '';
+  
+  const startDate = mobileStartDate?.value || null;
+  const endDate = mobileEndDate?.value || null;
+
+  const completedTasks = getFilteredCompletedTasks(startDate, endDate).slice(0, 20);
+
+  if (completedTasks.length === 0) {
+    mobileCompletedList.innerHTML = '<div class="empty-state">No completed tasks in this range</div>';
+    return;
+  }
+
+  completedTasks.forEach(task => {
+    const business = data.businesses.find(b => b.id === task.business);
+    const item = document.createElement('div');
+    item.className = 'completed-item';
+    item.innerHTML = `
+      <div class="completed-item-title">${escapeHtml(task.title)}</div>
+      ${task.outcome ? `<div class="completed-item-outcome">${linkifyOutcome(task.outcome)}</div>` : ''}
+      <div class="completed-item-meta">
+        <span class="completed-item-business" style="background: ${business?.color || '#64748b'}; color: #fff;">
+          ${business?.name || 'Unknown'}
+        </span>
+        <span class="completed-item-time">${formatTime(task.updatedAt)}</span>
+      </div>
+    `;
+    mobileCompletedList.appendChild(item);
   });
 }
 
@@ -248,6 +308,27 @@ function setupEventListeners() {
   mobilePrev.addEventListener('click', () => scrollToColumn(currentColumnIndex - 1));
   mobileNext.addEventListener('click', () => scrollToColumn(currentColumnIndex + 1));
 
+  // Mobile completed sheet
+  if (mobileCompleted) {
+    mobileCompleted.addEventListener('click', openCompletedSheet);
+  }
+  if (closeCompletedSheet) {
+    closeCompletedSheet.addEventListener('click', closeCompletedSheetFn);
+  }
+  if (completedSheet) {
+    completedSheet.addEventListener('click', (e) => {
+      if (e.target === completedSheet) closeCompletedSheetFn();
+    });
+  }
+  
+  // Date filters for mobile
+  if (mobileStartDate) {
+    mobileStartDate.addEventListener('change', renderMobileCompleted);
+  }
+  if (mobileEndDate) {
+    mobileEndDate.addEventListener('change', renderMobileCompleted);
+  }
+
   // Activity toggle
   if (activityToggle) {
     activityToggle.addEventListener('click', () => {
@@ -267,8 +348,22 @@ function setupEventListeners() {
     if (e.key === 'Escape') {
       closeModal();
       closeOutcomeModal();
+      closeCompletedSheetFn();
     }
   });
+}
+
+function openCompletedSheet() {
+  if (completedSheet) {
+    completedSheet.classList.add('active');
+    renderMobileCompleted();
+  }
+}
+
+function closeCompletedSheetFn() {
+  if (completedSheet) {
+    completedSheet.classList.remove('active');
+  }
 }
 
 function setupDragAndDrop() {
