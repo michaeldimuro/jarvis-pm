@@ -17,7 +17,7 @@ const assigneeFilterEl = document.getElementById('assigneeFilter');
 const taskModal = document.getElementById('taskModal');
 const taskForm = document.getElementById('taskForm');
 const modalTitle = document.getElementById('modalTitle');
-const newTaskBtn = document.getElementById('newTaskBtn');
+const newTaskBtn = document.getElementById('newTaskBtn'); // May be null if removed from header
 const modalClose = document.getElementById('modalClose');
 const cancelBtn = document.getElementById('cancelBtn');
 const saveBtn = document.getElementById('saveBtn');
@@ -273,8 +273,8 @@ function setupEventListeners() {
     });
   }
 
-  newTaskBtn.addEventListener('click', () => openModal());
-  mobileNewTask.addEventListener('click', () => openModal());
+  if (newTaskBtn) newTaskBtn.addEventListener('click', () => openModal());
+  if (mobileNewTask) mobileNewTask.addEventListener('click', () => openModal());
 
   modalClose.addEventListener('click', closeModal);
   cancelBtn.addEventListener('click', closeModal);
