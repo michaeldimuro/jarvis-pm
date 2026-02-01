@@ -7,8 +7,75 @@ const { v4: uuidv4 } = require('uuid');
 const app = express();
 const PORT = 3333;
 
-// Basic Authentication - protects entire app
-// Username: michael | Password: synergy2026
+// Middleware for JSON parsing (before auth so public endpoints work)
+app.use(express.json());
+
+// CORS for public endpoints
+app.use('/api/contact', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// Public contact form endpoint (no auth required)
+const CONTACT_FILE = path.join(__dirname, 'data', 'contacts.json');
+
+// Initialize contacts file
+if (!fs.existsSync(CONTACT_FILE)) {
+  fs.writeFileSync(CONTACT_FILE, JSON.stringify({ submissions: [] }, null, 2));
+}
+
+app.post('/api/contact', (req, res) => {
+  const { name, email, phone, service, preferredContact, message } = req.body;
+  
+  // Validate required fields
+  if (!name || !email || !phone || !message) {
+    return res.status(400).json({ success: false, message: 'Missing required fields' });
+  }
+  
+  // Save submission
+  const contacts = JSON.parse(fs.readFileSync(CONTACT_FILE, 'utf8'));
+  const submission = {
+    id: uuidv4(),
+    name,
+    email,
+    phone,
+    service: service || 'General Inquiry',
+    preferredContact: preferredContact || 'email',
+    message,
+    notified: false,
+    createdAt: new Date().toISOString()
+  };
+  contacts.submissions.push(submission);
+  fs.writeFileSync(CONTACT_FILE, JSON.stringify(contacts, null, 2));
+  
+  // Also create a task in the PM board
+  const DATA_FILE_PATH = path.join(__dirname, 'data', 'tasks.json');
+  const data = JSON.parse(fs.readFileSync(DATA_FILE_PATH, 'utf8'));
+  const newTask = {
+    id: uuidv4(),
+    title: `Website Lead: ${name} - ${service || 'General Inquiry'}`,
+    description: `**Contact:** ${name}\n**Email:** ${email}\n**Phone:** ${phone}\n**Service:** ${service || 'General Inquiry'}\n**Preferred Contact:** ${preferredContact || 'email'}\n\n**Message:**\n${message}`,
+    business: 'synergy',
+    priority: 'urgent',
+    column: 'todo',
+    assignee: 'michael',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  data.tasks.push(newTask);
+  fs.writeFileSync(DATA_FILE_PATH, JSON.stringify(data, null, 2));
+  
+  console.log(`📥 New contact form submission from ${name} (${email})`);
+  
+  res.json({ success: true, message: 'Thank you! We will contact you within 24 hours.' });
+});
+
+// Basic Authentication - protects main app (after public endpoints)
 app.use(basicAuth({
   users: { 
     'michael': 'synergy2026',
@@ -60,8 +127,7 @@ function initDataFiles() {
 
 initDataFiles();
 
-// Middleware
-app.use(express.json());
+// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Helper functions
