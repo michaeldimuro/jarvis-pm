@@ -165,10 +165,18 @@ function renderBoard() {
 
       // Show outcome in Review column if it exists
       const showOutcome = column.id === 'review' && task.outcome;
+      // Show blocked reason in Blocked column if it exists
+      const showBlocked = column.id === 'blocked' && task.blockedReason;
 
       taskEl.innerHTML = `
         <div class="task-title">${escapeHtml(task.title)}</div>
         ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
+        ${showBlocked ? `
+          <div class="task-blocked">
+            <div class="task-blocked-label">🚫 Blocked</div>
+            <div class="task-blocked-reason">${escapeHtml(task.blockedReason)}</div>
+          </div>
+        ` : ''}
         ${showOutcome ? `
           <div class="task-outcome">
             <div class="task-outcome-label">Outcome</div>

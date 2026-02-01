@@ -40,8 +40,9 @@ function initDataFiles() {
         { id: 'backlog', name: 'Backlog', order: 0 },
         { id: 'todo', name: 'To Do', order: 1 },
         { id: 'in-progress', name: 'In Progress', order: 2 },
-        { id: 'review', name: 'Review', order: 3 },
-        { id: 'done', name: 'Done', order: 4 }
+        { id: 'blocked', name: 'Blocked', order: 3 },
+        { id: 'review', name: 'Review', order: 4 },
+        { id: 'done', name: 'Done', order: 5 }
       ],
       assignees: [
         { id: 'michael', name: 'Michael', color: '#8B5CF6' },
