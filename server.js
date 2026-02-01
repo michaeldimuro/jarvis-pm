@@ -2,10 +2,70 @@ const express = require('express');
 const basicAuth = require('express-basic-auth');
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
+const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const PORT = 3333;
+
+// Create HTTP server
+const server = http.createServer(app);
+
+// Create WebSocket server
+const wss = new WebSocket.Server({ server });
+
+// Track connected clients
+const clients = new Set();
+
+wss.on('connection', (ws) => {
+  clients.add(ws);
+  console.log('📡 WebSocket client connected. Total:', clients.size);
+  
+  ws.on('close', () => {
+    clients.delete(ws);
+    console.log('📡 WebSocket client disconnected. Total:', clients.size);
+  });
+  
+  ws.on('error', (error) => {
+    console.error('WebSocket error:', error);
+    clients.delete(ws);
+  });
+});
+
+// Broadcast to all connected clients
+function broadcast(event, data) {
+  const message = JSON.stringify({ event, data, timestamp: new Date().toISOString() });
+  clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
+
+// Save notification for Jarvis (I can monitor this file)
+const NOTIFICATIONS_FILE = path.join(__dirname, 'data', 'notifications.json');
+
+function notifyJarvis(type, task, user) {
+  // Initialize notifications file if needed
+  if (!fs.existsSync(NOTIFICATIONS_FILE)) {
+    fs.writeFileSync(NOTIFICATIONS_FILE, JSON.stringify({ notifications: [] }, null, 2));
+  }
+  
+  const notifications = JSON.parse(fs.readFileSync(NOTIFICATIONS_FILE, 'utf8'));
+  notifications.notifications.unshift({
+    id: uuidv4(),
+    type, // 'task_created', 'task_updated', 'task_moved', 'task_deleted'
+    taskId: task?.id,
+    taskTitle: task?.title,
+    user: user || 'unknown',
+    read: false,
+    createdAt: new Date().toISOString()
+  });
+  // Keep last 50 notifications
+  notifications.notifications = notifications.notifications.slice(0, 50);
+  fs.writeFileSync(NOTIFICATIONS_FILE, JSON.stringify(notifications, null, 2));
+}
 
 // Middleware for JSON parsing (before auth so public endpoints work)
 app.use(express.json());
@@ -70,12 +130,17 @@ app.post('/api/contact', (req, res) => {
   data.tasks.push(newTask);
   fs.writeFileSync(DATA_FILE_PATH, JSON.stringify(data, null, 2));
   
+  // Broadcast new task and notify
+  broadcast('task_created', newTask);
+  notifyJarvis('task_created', newTask, 'website');
+  
   console.log(`📥 New contact form submission from ${name} (${email})`);
   
   res.json({ success: true, message: 'Thank you! We will contact you within 24 hours.' });
 });
 
 // Basic Authentication - protects main app (after public endpoints)
+// Also extract username for notifications
 app.use(basicAuth({
   users: { 
     'michael': 'synergy2026',
@@ -84,6 +149,7 @@ app.use(basicAuth({
   challenge: true,
   realm: 'Mission Control'
 }));
+
 const DATA_FILE = path.join(__dirname, 'data', 'tasks.json');
 const ACTIVITY_FILE = path.join(__dirname, 'data', 'activity.json');
 
@@ -174,10 +240,31 @@ app.get('/api/activity', (req, res) => {
   res.json(activity);
 });
 
+// Get notifications (for Jarvis)
+app.get('/api/notifications', (req, res) => {
+  if (!fs.existsSync(NOTIFICATIONS_FILE)) {
+    return res.json({ notifications: [] });
+  }
+  const notifications = JSON.parse(fs.readFileSync(NOTIFICATIONS_FILE, 'utf8'));
+  res.json(notifications);
+});
+
+// Mark notifications as read
+app.post('/api/notifications/read', (req, res) => {
+  if (!fs.existsSync(NOTIFICATIONS_FILE)) {
+    return res.json({ success: true });
+  }
+  const notifications = JSON.parse(fs.readFileSync(NOTIFICATIONS_FILE, 'utf8'));
+  notifications.notifications = notifications.notifications.map(n => ({ ...n, read: true }));
+  fs.writeFileSync(NOTIFICATIONS_FILE, JSON.stringify(notifications, null, 2));
+  res.json({ success: true });
+});
+
 // Create task
 app.post('/api/tasks', (req, res) => {
   const data = readData();
   const { title, description, business, priority, column, outcome, assignee } = req.body;
+  const user = req.auth?.user || 'unknown';
   
   const newTask = {
     id: uuidv4(),
@@ -198,6 +285,12 @@ app.post('/api/tasks', (req, res) => {
   const businessName = data.businesses.find(b => b.id === newTask.business)?.name || business;
   logActivity('created', `Task "${title}" added to ${businessName}`);
   
+  // Broadcast and notify
+  broadcast('task_created', newTask);
+  if (user !== 'jarvis') {
+    notifyJarvis('task_created', newTask, user);
+  }
+  
   res.json(newTask);
 });
 
@@ -205,6 +298,7 @@ app.post('/api/tasks', (req, res) => {
 app.put('/api/tasks/:id', (req, res) => {
   const data = readData();
   const taskIndex = data.tasks.findIndex(t => t.id === req.params.id);
+  const user = req.auth?.user || 'unknown';
   
   if (taskIndex === -1) {
     return res.status(404).json({ error: 'Task not found' });
@@ -219,23 +313,33 @@ app.put('/api/tasks/:id', (req, res) => {
     updatedAt: new Date().toISOString()
   };
   
+  const updatedTask = data.tasks[taskIndex];
   writeData(data);
   
-  // Log activity based on what changed
+  // Log activity and determine event type
+  let eventType = 'task_updated';
   if (updates.column && updates.column !== oldTask.column) {
     const columnName = data.columns.find(c => c.id === updates.column)?.name || updates.column;
-    logActivity('moved', `"${data.tasks[taskIndex].title}" moved to ${columnName}`);
+    logActivity('moved', `"${updatedTask.title}" moved to ${columnName}`);
+    eventType = 'task_moved';
   } else {
-    logActivity('updated', `"${data.tasks[taskIndex].title}" was updated`);
+    logActivity('updated', `"${updatedTask.title}" was updated`);
   }
   
-  res.json(data.tasks[taskIndex]);
+  // Broadcast and notify
+  broadcast(eventType, { task: updatedTask, oldColumn: oldTask.column, newColumn: updates.column });
+  if (user !== 'jarvis') {
+    notifyJarvis(eventType, updatedTask, user);
+  }
+  
+  res.json(updatedTask);
 });
 
 // Delete task
 app.delete('/api/tasks/:id', (req, res) => {
   const data = readData();
   const task = data.tasks.find(t => t.id === req.params.id);
+  const user = req.auth?.user || 'unknown';
   
   if (!task) {
     return res.status(404).json({ error: 'Task not found' });
@@ -246,10 +350,17 @@ app.delete('/api/tasks/:id', (req, res) => {
   
   logActivity('deleted', `Task "${task.title}" was deleted`);
   
+  // Broadcast and notify
+  broadcast('task_deleted', task);
+  if (user !== 'jarvis') {
+    notifyJarvis('task_deleted', task, user);
+  }
+  
   res.json({ success: true });
 });
 
-// Start server
-app.listen(PORT, () => {
+// Start server with WebSocket support
+server.listen(PORT, () => {
   console.log(`⚡ Mission Control running at http://localhost:${PORT}`);
+  console.log(`📡 WebSocket server ready for real-time updates`);
 });

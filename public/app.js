@@ -631,5 +631,112 @@ function formatTime(timestamp) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+// WebSocket connection for real-time updates
+let ws = null;
+let wsReconnectTimeout = null;
+
+function connectWebSocket() {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${protocol}//${window.location.host}`;
+  
+  ws = new WebSocket(wsUrl);
+  
+  ws.onopen = () => {
+    console.log('📡 Connected to Mission Control');
+    // Clear any reconnect timeout
+    if (wsReconnectTimeout) {
+      clearTimeout(wsReconnectTimeout);
+      wsReconnectTimeout = null;
+    }
+  };
+  
+  ws.onmessage = (event) => {
+    try {
+      const message = JSON.parse(event.data);
+      handleWebSocketMessage(message);
+    } catch (err) {
+      console.error('Failed to parse WebSocket message:', err);
+    }
+  };
+  
+  ws.onclose = () => {
+    console.log('📡 Disconnected from Mission Control, reconnecting...');
+    // Reconnect after 3 seconds
+    wsReconnectTimeout = setTimeout(connectWebSocket, 3000);
+  };
+  
+  ws.onerror = (error) => {
+    console.error('WebSocket error:', error);
+  };
+}
+
+function handleWebSocketMessage(message) {
+  const { event, data: eventData } = message;
+  
+  switch (event) {
+    case 'task_created':
+      // Add new task to local data if not already present
+      if (!data.tasks.find(t => t.id === eventData.id)) {
+        data.tasks.push(eventData);
+        renderBoard();
+        renderCompleted();
+        showNotification(`New task: ${eventData.title}`);
+      }
+      break;
+      
+    case 'task_updated':
+    case 'task_moved':
+      // Update task in local data
+      const taskIndex = data.tasks.findIndex(t => t.id === eventData.task.id);
+      if (taskIndex !== -1) {
+        data.tasks[taskIndex] = eventData.task;
+        renderBoard();
+        renderCompleted();
+        if (event === 'task_moved') {
+          showNotification(`Task moved: ${eventData.task.title}`);
+        }
+      }
+      break;
+      
+    case 'task_deleted':
+      // Remove task from local data
+      data.tasks = data.tasks.filter(t => t.id !== eventData.id);
+      renderBoard();
+      renderCompleted();
+      showNotification(`Task deleted: ${eventData.title}`);
+      break;
+  }
+  
+  // Refresh activity
+  loadActivity().then(renderActivity);
+}
+
+function showNotification(text) {
+  // Create a toast notification
+  const toast = document.createElement('div');
+  toast.className = 'toast-notification';
+  toast.textContent = text;
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #3b82f6;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 10000;
+    animation: slideIn 0.3s ease-out;
+  `;
+  document.body.appendChild(toast);
+  
+  // Remove after 3 seconds
+  setTimeout(() => {
+    toast.style.animation = 'slideOut 0.3s ease-in';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
 // Start
+connectWebSocket();
 init();
