@@ -3,6 +3,7 @@ let data = { businesses: [], columns: [], tasks: [], assignees: [] };
 let activities = [];
 let currentFilter = 'all';
 let assigneeFilter = 'all';
+let priorityFilter = 'all';
 let columnObserver = null;
 let currentColumnIndex = 0;
 let pendingOutcomeCallback = null;
@@ -14,6 +15,7 @@ const activityList = document.getElementById('activityList');
 const activityToggle = document.getElementById('activityToggle');
 const businessFilter = document.getElementById('businessFilter');
 const assigneeFilterEl = document.getElementById('assigneeFilter');
+const priorityFilterEl = document.getElementById('priorityFilter');
 const taskModal = document.getElementById('taskModal');
 const taskForm = document.getElementById('taskForm');
 const modalTitle = document.getElementById('modalTitle');
@@ -24,6 +26,7 @@ const saveBtn = document.getElementById('saveBtn');
 const mobilePrev = document.getElementById('mobilePrev');
 const mobileNext = document.getElementById('mobileNext');
 const mobileNewTask = document.getElementById('mobileNewTask');
+const desktopNewTask = document.getElementById('desktopNewTask');
 const mobileColumnName = document.getElementById('mobileColumnName');
 const outcomeModal = document.getElementById('outcomeModal');
 const outcomeText = document.getElementById('outcomeText');
@@ -140,7 +143,8 @@ function renderBoard() {
       const matchesColumn = t.column === column.id;
       const matchesBusiness = currentFilter === 'all' || t.business === currentFilter;
       const matchesAssignee = assigneeFilter === 'all' || t.assignee === assigneeFilter;
-      return matchesColumn && matchesBusiness && matchesAssignee;
+      const matchesPriority = priorityFilter === 'all' || t.priority === priorityFilter;
+      return matchesColumn && matchesBusiness && matchesAssignee && matchesPriority;
     });
 
     columnEl.innerHTML = `
@@ -210,7 +214,8 @@ function getFilteredCompletedTasks() {
       const matchesColumn = t.column === 'done';
       const matchesBusiness = currentFilter === 'all' || t.business === currentFilter;
       const matchesAssignee = assigneeFilter === 'all' || t.assignee === assigneeFilter;
-      return matchesColumn && matchesBusiness && matchesAssignee;
+      const matchesPriority = priorityFilter === 'all' || t.priority === priorityFilter;
+      return matchesColumn && matchesBusiness && matchesAssignee && matchesPriority;
     })
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 }
@@ -281,8 +286,17 @@ function setupEventListeners() {
     });
   }
 
+  if (priorityFilterEl) {
+    priorityFilterEl.addEventListener('change', (e) => {
+      priorityFilter = e.target.value;
+      renderBoard();
+      renderCompleted();
+    });
+  }
+
   if (newTaskBtn) newTaskBtn.addEventListener('click', () => openModal());
   if (mobileNewTask) mobileNewTask.addEventListener('click', () => openModal());
+  if (desktopNewTask) desktopNewTask.addEventListener('click', () => openModal());
 
   modalClose.addEventListener('click', closeModal);
   cancelBtn.addEventListener('click', closeModal);
@@ -412,7 +426,8 @@ function updateMobileIndicator(columns) {
     const matchesColumn = t.column === columnId;
     const matchesBusiness = currentFilter === 'all' || t.business === currentFilter;
     const matchesAssignee = assigneeFilter === 'all' || t.assignee === assigneeFilter;
-    return matchesColumn && matchesBusiness && matchesAssignee;
+    const matchesPriority = priorityFilter === 'all' || t.priority === priorityFilter;
+    return matchesColumn && matchesBusiness && matchesAssignee && matchesPriority;
   }).length;
   mobileColumnName.textContent = `${columnData?.name || 'Column'} (${count})`;
 }
